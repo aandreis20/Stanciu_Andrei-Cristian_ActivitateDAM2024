@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Componente Calculator</string>
+    <string name="add_component_button">Add Component</string>
+</resources>
