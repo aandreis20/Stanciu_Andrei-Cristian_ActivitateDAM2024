@@ -4,14 +4,14 @@ public class Component {
     private String name;
     private String category;
     private int price;
-    private boolean availability;
+    private boolean discount;
     private int quantity;
 
     public Component() {
         this.name = "i5";
         this.category = "Procesoare";
         this.price = 1000;
-        this.availability = true;
+        this.discount = true;
         this.quantity = 10;
     }
 
@@ -19,12 +19,12 @@ public class Component {
     public Component(String name,
                      String category,
                      int price,
-                     boolean availability,
+                     boolean discount,
                      int quantity) {
         this.name = name;
         this.category = category;
         this.price = price;
-        this.availability = availability;
+        this.discount = discount;
         this.quantity = quantity;
     }
 
@@ -52,12 +52,12 @@ public class Component {
         this.price = price;
     }
 
-    public boolean isAvailability() {
-        return availability;
+    public boolean isDiscount() {
+        return discount;
     }
 
-    public void setAvailability(boolean availability) {
-        this.availability = availability;
+    public void setDiscount(boolean discount) {
+        this.discount = discount;
     }
 
     public int getQuantity() {
@@ -74,7 +74,7 @@ public class Component {
                 "name='" + name + '\'' +
                 ", category='" + category + '\'' +
                 ", price=" + price +
-                ", availability=" + availability +
+                ", availability=" + discount +
                 ", quantity=" + quantity +
                 '}';
     }
