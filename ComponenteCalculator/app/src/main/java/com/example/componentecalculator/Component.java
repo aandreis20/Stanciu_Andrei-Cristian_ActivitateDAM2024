@@ -1,6 +1,9 @@
 package com.example.componentecalculator;
 
-public class Component {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class Component implements Parcelable {
     private String name;
     private String category;
     private int price;
@@ -27,6 +30,40 @@ public class Component {
         this.discount = discount;
         this.quantity = quantity;
     }
+
+    protected Component(Parcel in) {
+        name = in.readString();
+        category = in.readString();
+        price = in.readInt();
+        discount = in.readByte() != 0;
+        quantity = in.readInt();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(name);
+        dest.writeString(category);
+        dest.writeInt(price);
+        dest.writeByte((byte) (discount ? 1 : 0));
+        dest.writeInt(quantity);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<Component> CREATOR = new Creator<Component>() {
+        @Override
+        public Component createFromParcel(Parcel in) {
+            return new Component(in);
+        }
+
+        @Override
+        public Component[] newArray(int size) {
+            return new Component[size];
+        }
+    };
 
     public String getName() {
         return name;

@@ -1,10 +1,12 @@
 package com.example.componentecalculator;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -40,6 +42,12 @@ public class AddComponent extends AppCompatActivity {
                 int quantity = Integer.parseInt(etQuantity.getText().toString());
 
                 Component component = new Component(name, category, price, discount, quantity);
+
+                Intent it = new Intent();
+                it.putExtra("component", component);
+                Toast.makeText(AddComponent.this, component.toString(), Toast.LENGTH_LONG).show();
+                setResult(RESULT_OK, it);
+                finish();
             }
         });
     }
