@@ -5,10 +5,13 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -17,6 +20,9 @@ import androidx.core.view.WindowInsetsCompat;
 import java.util.List;
 
 public class ComponentsList extends AppCompatActivity {
+    private List<Component> components = null;
+    private int modifiedId = 0;
+    private ComponentAdapter adapter = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,15 +36,29 @@ public class ComponentsList extends AppCompatActivity {
         });
 
         Intent it = getIntent();
-        List<Component> components = it.getParcelableArrayListExtra("components");
+        components = it.getParcelableArrayListExtra("components");
         ListView listView = findViewById(R.id.componentsListView);
 
-        ArrayAdapter<Component> adapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, components);
+//        ArrayAdapter<Component> adapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, components);
+//        listView.setAdapter(adapter);
+
+        adapter = new ComponentAdapter(components, getApplicationContext(), R.layout.row_item);
         listView.setAdapter(adapter);
+
+//        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                Toast.makeText(ComponentsList.this, components.get(position).toString(), Toast.LENGTH_LONG).show();
+//            }
+//        });
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent modifyIntent = new Intent(getApplicationContext(), AddComponent.class);
+                modifyIntent.putExtra("component", components.get(position));
+                modifiedId = position;
+                startActivityForResult(modifyIntent, 403);
                 Toast.makeText(ComponentsList.this, components.get(position).toString(), Toast.LENGTH_LONG).show();
             }
         });
@@ -51,5 +71,17 @@ public class ComponentsList extends AppCompatActivity {
                 return false;
             }
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode==RESULT_OK){
+            if (requestCode==403)
+            {
+                components.set(modifiedId,data.getParcelableExtra("apartament"));
+                adapter.notifyDataSetChanged();
+            }
+        }
     }
 }

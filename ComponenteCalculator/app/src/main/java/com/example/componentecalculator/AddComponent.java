@@ -26,6 +26,23 @@ public class AddComponent extends AppCompatActivity {
             return insets;
         });
 
+        Intent intent = getIntent();
+        if(intent.hasExtra("component")) {
+            Component component = intent.getParcelableExtra("component");
+            EditText editName = findViewById(R.id.EditName);
+            EditText editCategory = findViewById(R.id.EditCategory);
+            EditText editPrice = findViewById(R.id.EditPrice);
+            CheckBox checkDiscount = findViewById(R.id.CheckDiscount);
+            EditText editQuantity = findViewById(R.id.EditQuantity);
+
+            assert component != null;
+            editName.setText(component.getName());
+            editCategory.setText(component.getCategory());
+            editPrice.setText(String.valueOf(component.getPrice()));
+            checkDiscount.setChecked(component.isDiscount());
+            editQuantity.setText(String.valueOf(component.getQuantity()));
+        }
+
         Button btnAddNewComponent = findViewById(R.id.button_add_new_component);
         btnAddNewComponent.setOnClickListener(new View.OnClickListener() {
             @Override

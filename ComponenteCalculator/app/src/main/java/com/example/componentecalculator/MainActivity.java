@@ -28,6 +28,14 @@ public class MainActivity extends AppCompatActivity {
 
         components = new ArrayList<>();
 
+        String name1 = "Intel Pentium";
+        String category1 = "CPU";
+        int price1 = 100;
+        boolean discount1 = true;
+        int quantity1 = 5;
+        components.add(new Component(name1, category1, price1, discount1, quantity1));
+
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
