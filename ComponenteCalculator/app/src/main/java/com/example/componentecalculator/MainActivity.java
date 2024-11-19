@@ -60,6 +60,15 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(it);
             }
         });
+
+        Button imagesButton = findViewById(R.id.imagesButton);
+        imagesButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), ImagesList.class);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override
