@@ -1,1 +1,2 @@
-# Stanciu_Andrei-Cristian_ActivitateDAM2024
+# Stanciu_Andrei-Cristian_ActivitateDAM2024__
+Grupa 1099__
