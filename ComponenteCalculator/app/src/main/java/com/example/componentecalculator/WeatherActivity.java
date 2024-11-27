@@ -3,7 +3,6 @@ package com.example.componentecalculator;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -27,7 +26,12 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class WeatherActivity extends AppCompatActivity {
+    Executor executor = Executors.newSingleThreadExecutor();
+    Handler handler = new Handler(Looper.getMainLooper());
+
     String text = "";
+    String cityKey = "";
+    static String apiKey = "TxM94PiAb3mL0ZXErgoU5tHItQZg0eJL";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,91 +44,12 @@ public class WeatherActivity extends AppCompatActivity {
             return insets;
         });
 
-        Executor executor = Executors.newSingleThreadExecutor();
-        Handler handler = new Handler(Looper.getMainLooper());
-
         EditText citySearch = findViewById(R.id.EditCity);
         Button searchButton = findViewById(R.id.searchButton);
-        searchButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String city = citySearch.getText().toString();
-                String apiKey = "TxM94PiAb3mL0ZXErgoU5tHItQZg0eJL";
 
-                String urlString = "http://dataservice.accuweather.com/locations/v1/cities/search?apikey=" + apiKey + "&q=" + city;
-
-                executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        HttpURLConnection connection = null;
-                        BufferedReader reader = null;
-                        try {
-                            URL url = new URL(urlString);
-                            connection = (HttpURLConnection) url.openConnection();
-
-                            connection.setRequestMethod("GET");
-                            connection.setConnectTimeout(10000);
-                            connection.setReadTimeout(10000);
-
-                            int responseCode = connection.getResponseCode();
-                            if (responseCode == HttpURLConnection.HTTP_OK) {
-                                reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                                StringBuilder response = new StringBuilder();
-                                String line;
-                                while ((line = reader.readLine()) != null) {
-                                    response.append(line);
-                                }
-
-                                JSONArray jsonResponse = new JSONArray(response.toString());
-                                JSONObject object = jsonResponse.getJSONObject(0);
-                                String cityKey = object.getString("Key");
-
-                                String weatherUrl = "http://dataservice.accuweather.com/forecasts/v1/daily/1day/" + cityKey + "?apikey=" + apiKey + "&metric=true";
-
-                                try {
-                                    URL url2 = new URL(weatherUrl);
-                                    connection = (HttpURLConnection) url2.openConnection();
-                                    int responseCode2 = connection.getResponseCode();
-                                    if (responseCode2 == HttpURLConnection.HTTP_OK) {
-                                        reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                                        StringBuilder response2 = new StringBuilder();
-                                        String line2;
-                                        while ((line2 = reader.readLine()) != null) {
-                                            response2.append(line2);
-                                        }
-                                        
-                                        JSONObject object1 = temperature(response2.toString(), 0);
-
-                                        String valueMin = minTemperature(object1);
-                                        String valueMax = maxTemperature(object1);
-
-                                        text = "Temperatura min: " + valueMin + "  Temperatura max: " + valueMax;
-                                    }
-                                } finally {
-                                    handler.post(() -> {
-                                        TextView cityKeyTextView = findViewById(R.id.cityKey);
-                                        cityKeyTextView.setText(text);
-                                    });
-                                }
-                            }
-                        } catch (Exception e) {
-                            handler.post(() -> {
-                                TextView cityKeyTextView = findViewById(R.id.cityKey);
-                                cityKeyTextView.setText("Error: " + e.getMessage());
-                            });
-                        } finally {
-                            if (reader != null) {
-                                try {
-                                    reader.close();
-                                } catch (Exception ignored) {}
-                            }
-                            if (connection != null) {
-                                connection.disconnect();
-                            }
-                        }
-                    }
-                });
-            }
+        searchButton.setOnClickListener(v -> {
+            String cityUrl = makeCityUrl(citySearch.getText().toString());
+            requestWeather(cityUrl);
         });
     }
 
@@ -146,5 +71,103 @@ public class WeatherActivity extends AppCompatActivity {
     private String maxTemperature(@NonNull JSONObject object) throws JSONException {
         JSONObject maximum = object.getJSONObject("Maximum");
         return maximum.getString("Value");
+    }
+
+    @NonNull
+    private String makeCityUrl(String city) {
+        return "http://dataservice.accuweather.com/locations/v1/cities/search?apikey=" + apiKey + "&q=" + city;
+    }
+
+    private void handleWeatherRequest(String weatherUrl) {
+        executor.execute(() -> {
+            HttpURLConnection connection = null;
+            BufferedReader reader = null;
+            try {
+                URL url2 = new URL(weatherUrl);
+                connection = (HttpURLConnection) url2.openConnection();
+                int responseCode2 = connection.getResponseCode();
+                if (responseCode2 == HttpURLConnection.HTTP_OK) {
+                    reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    StringBuilder response2 = new StringBuilder();
+                    String line2;
+                    while ((line2 = reader.readLine()) != null) {
+                        response2.append(line2);
+                    }
+
+                    text = generateWeatherText(response2.toString());
+
+                    handler.post(() -> {
+                        TextView cityKeyTextView = findViewById(R.id.cityKey);
+                        cityKeyTextView.setText(text);
+                    });
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (Exception ignored) {}
+                }
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+        });
+    }
+
+    private void requestWeather(String cityUrl) {
+        executor.execute(() -> {
+            HttpURLConnection connection = null;
+            BufferedReader reader = null;
+            try {
+                URL url = new URL(cityUrl);
+                connection = (HttpURLConnection) url.openConnection();
+
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(10000);
+                connection.setReadTimeout(10000);
+
+                int responseCode = connection.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    StringBuilder response = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        response.append(line);
+                    }
+
+                    JSONArray jsonResponse = new JSONArray(response.toString());
+                    JSONObject object = jsonResponse.getJSONObject(0);
+                    cityKey = object.getString("Key");
+
+                    String weatherUrl = "http://dataservice.accuweather.com/forecasts/v1/daily/1day/" + cityKey + "?apikey=" + apiKey + "&metric=true";
+
+                    handleWeatherRequest(weatherUrl);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (Exception ignored) {}
+                }
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+        });
+
+    }
+
+    @NonNull
+    private String generateWeatherText(String jsonResponse) throws JSONException {
+        JSONObject temperatureObject = temperature(jsonResponse, 0);
+
+        String valueMin = minTemperature(temperatureObject);
+        String valueMax = maxTemperature(temperatureObject);
+
+        return "Temperatura min: " + valueMin + "  Temperatura max: " + valueMax;
     }
 }
