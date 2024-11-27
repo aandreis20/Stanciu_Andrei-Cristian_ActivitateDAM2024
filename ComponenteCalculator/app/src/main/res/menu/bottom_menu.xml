@@ -2,18 +2,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/nav_add_component"
-        android:icon="@drawable/ic_add" <!-- Înlocuiește cu un icon relevant -->
-    android:title="Add Component" />
+        android:icon="@drawable/add_circle_24px"
+        android:title="Add Component" />
     <item
         android:id="@+id/nav_components_list"
-        android:icon="@drawable/ic_list" <!-- Înlocuiește cu un icon relevant -->
-    android:title="Components List" />
+        android:icon="@drawable/menu_24px"
+        android:title="Components List" />
     <item
         android:id="@+id/nav_images"
-        android:icon="@drawable/ic_image" <!-- Înlocuiește cu un icon relevant -->
-    android:title="Images" />
+        android:icon="@drawable/image_24px"
+        android:title="Images" />
     <item
         android:id="@+id/nav_weather"
-        android:icon="@drawable/ic_weather" <!-- Înlocuiește cu un icon relevant -->
-    android:title="Weather" />
+        android:icon="@drawable/device_thermostat_24px"
+        android:title="Weather" />
 </menu>
