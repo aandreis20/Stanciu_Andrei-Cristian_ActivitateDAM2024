@@ -9,12 +9,14 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -47,7 +49,7 @@ public class WeatherActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String city = citySearch.getText().toString();
-                String apiKey = "9YzUUfT2jINdALL8auzA2qWKxBGCOnuq";
+                String apiKey = "TxM94PiAb3mL0ZXErgoU5tHItQZg0eJL";
 
                 String urlString = "http://dataservice.accuweather.com/locations/v1/cities/search?apikey=" + apiKey + "&q=" + city;
 
@@ -77,7 +79,7 @@ public class WeatherActivity extends AppCompatActivity {
                                 JSONObject object = jsonResponse.getJSONObject(0);
                                 String cityKey = object.getString("Key");
 
-                                String weatherUrl = "http://dataservice.accuweather.com/forecasts/v1/daily/1day/" + cityKey + "?apikey=9YzUUfT2jINdALL8auzA2qWKxBGCOnuq&metric=true";
+                                String weatherUrl = "http://dataservice.accuweather.com/forecasts/v1/daily/1day/" + cityKey + "?apikey=" + apiKey + "&metric=true";
 
                                 try {
                                     URL url2 = new URL(weatherUrl);
@@ -90,15 +92,11 @@ public class WeatherActivity extends AppCompatActivity {
                                         while ((line2 = reader.readLine()) != null) {
                                             response2.append(line2);
                                         }
-                                        JSONObject object1 = new JSONObject(response2.toString());
-                                        JSONArray array1 = object1.getJSONArray("DailyForecasts");
+                                        
+                                        JSONObject object1 = temperature(response2.toString(), 0);
 
-                                        JSONObject object2 = array1.getJSONObject(0);
-                                        JSONObject object3 = object2.getJSONObject("Temperature");
-                                        JSONObject minimum = object3.getJSONObject("Minimum");
-                                        JSONObject maximum = object3.getJSONObject("Maximum");
-                                        String valueMin = minimum.getString("Value");
-                                        String valueMax = maximum.getString("Value");
+                                        String valueMin = minTemperature(object1);
+                                        String valueMax = maxTemperature(object1);
 
                                         text = "Temperatura min: " + valueMin + "  Temperatura max: " + valueMax;
                                     }
@@ -113,7 +111,6 @@ public class WeatherActivity extends AppCompatActivity {
                             handler.post(() -> {
                                 TextView cityKeyTextView = findViewById(R.id.cityKey);
                                 cityKeyTextView.setText("Error: " + e.getMessage());
-                                throw new RuntimeException(e.getMessage());
                             });
                         } finally {
                             if (reader != null) {
@@ -129,5 +126,25 @@ public class WeatherActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    @NonNull
+    private JSONObject temperature(String response, int index) throws JSONException {
+        JSONObject forecast = new JSONObject(response);
+        JSONArray dailies = forecast.getJSONArray("DailyForecasts");
+        JSONObject day = dailies.getJSONObject(index);
+        return day.getJSONObject("Temperature");
+    }
+
+    @NonNull
+    private String minTemperature(@NonNull JSONObject object) throws JSONException {
+        JSONObject minimum = object.getJSONObject("Minimum");
+        return minimum.getString("Value");
+    }
+
+    @NonNull
+    private String maxTemperature(@NonNull JSONObject object) throws JSONException {
+        JSONObject maximum = object.getJSONObject("Maximum");
+        return maximum.getString("Value");
     }
 }
