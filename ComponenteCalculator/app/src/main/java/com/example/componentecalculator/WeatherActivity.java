@@ -3,9 +3,13 @@ package com.example.componentecalculator;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.ListView;
+import android.widget.Spinner;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -22,6 +26,8 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -29,9 +35,10 @@ public class WeatherActivity extends AppCompatActivity {
     Executor executor = Executors.newSingleThreadExecutor();
     Handler handler = new Handler(Looper.getMainLooper());
 
-    String text = "";
+    List<String> temperatures = new ArrayList<>();
     String cityKey = "";
-    static String apiKey = "TxM94PiAb3mL0ZXErgoU5tHItQZg0eJL";
+    int days = 0;
+    static String apiKey = "ASTSdiE3vdtlKPzpTk353xMy1XrdFAIf";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,13 +51,29 @@ public class WeatherActivity extends AppCompatActivity {
             return insets;
         });
 
-        EditText citySearch = findViewById(R.id.EditCity);
+        Spinner spinner = findViewById(R.id.spinner);
+        String[] options = {"One day temperature", "5 days temperatures"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, options);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if(position == 0) {
+                    days = 1;
+                } else if(position == 1) {
+                    days = 5;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
         Button searchButton = findViewById(R.id.searchButton);
 
-        searchButton.setOnClickListener(v -> {
-            String cityUrl = makeCityUrl(citySearch.getText().toString());
-            requestWeather(cityUrl);
-        });
+        searchButton.setOnClickListener(v -> requestWeather());
     }
 
     @NonNull
@@ -93,12 +116,20 @@ public class WeatherActivity extends AppCompatActivity {
                     while ((line2 = reader.readLine()) != null) {
                         response2.append(line2);
                     }
-
-                    text = generateWeatherText(response2.toString());
+                    if(days==1) {
+                        temperatures.clear();
+                        temperatures.add(generateWeatherText(response2.toString(), 0));
+                    } else if(days == 5) {
+                        temperatures.clear();
+                        for (int i = 0; i < 5; i++) {
+                            temperatures.add(generateWeatherText(response2.toString(), i));
+                        }
+                    }
 
                     handler.post(() -> {
-                        TextView cityKeyTextView = findViewById(R.id.cityKey);
-                        cityKeyTextView.setText(text);
+                        ListView listView = findViewById(R.id.weatherListView);
+                        ArrayAdapter<String> adapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, temperatures);
+                        listView.setAdapter(adapter);
                     });
                 }
             } catch (Exception e) {
@@ -116,7 +147,9 @@ public class WeatherActivity extends AppCompatActivity {
         });
     }
 
-    private void requestWeather(String cityUrl) {
+    private void requestWeather() {
+        EditText citySearch = findViewById(R.id.EditCity);
+        String cityUrl = makeCityUrl(citySearch.getText().toString());
         executor.execute(() -> {
             HttpURLConnection connection = null;
             BufferedReader reader = null;
@@ -141,7 +174,7 @@ public class WeatherActivity extends AppCompatActivity {
                     JSONObject object = jsonResponse.getJSONObject(0);
                     cityKey = object.getString("Key");
 
-                    String weatherUrl = "http://dataservice.accuweather.com/forecasts/v1/daily/1day/" + cityKey + "?apikey=" + apiKey + "&metric=true";
+                    String weatherUrl = "http://dataservice.accuweather.com/forecasts/v1/daily/5day/" + cityKey + "?apikey=" + apiKey + "&metric=true";
 
                     handleWeatherRequest(weatherUrl);
                 }
@@ -162,12 +195,12 @@ public class WeatherActivity extends AppCompatActivity {
     }
 
     @NonNull
-    private String generateWeatherText(String jsonResponse) throws JSONException {
-        JSONObject temperatureObject = temperature(jsonResponse, 0);
+    private String generateWeatherText(String jsonResponse, int index) throws JSONException {
+        JSONObject temperatureObject = temperature(jsonResponse, index);
 
         String valueMin = minTemperature(temperatureObject);
         String valueMax = maxTemperature(temperatureObject);
 
-        return "Temperatura min: " + valueMin + "  Temperatura max: " + valueMax;
+        return "Temperature min: " + valueMin + "  Temperature max: " + valueMax;
     }
 }

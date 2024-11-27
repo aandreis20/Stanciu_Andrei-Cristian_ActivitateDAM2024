@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_add_component"
+        android:icon="@drawable/ic_add" <!-- Înlocuiește cu un icon relevant -->
+    android:title="Add Component" />
+    <item
+        android:id="@+id/nav_components_list"
+        android:icon="@drawable/ic_list" <!-- Înlocuiește cu un icon relevant -->
+    android:title="Components List" />
+    <item
+        android:id="@+id/nav_images"
+        android:icon="@drawable/ic_image" <!-- Înlocuiește cu un icon relevant -->
+    android:title="Images" />
+    <item
+        android:id="@+id/nav_weather"
+        android:icon="@drawable/ic_weather" <!-- Înlocuiește cu un icon relevant -->
+    android:title="Weather" />
+</menu>
