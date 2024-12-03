@@ -2,11 +2,10 @@ package com.example.componentecalculator;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -16,13 +15,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.room.Room;
 
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public class ComponentsList extends AppCompatActivity {
     private List<Component> components = null;
     private int modifiedId = 0;
     private ComponentAdapter adapter = null;
+    private ComponentDatabase componentDatabase = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,23 +37,26 @@ public class ComponentsList extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-
-        Intent it = getIntent();
-        components = it.getParcelableArrayListExtra("components");
         ListView listView = findViewById(R.id.componentsListView);
 
-//        ArrayAdapter<Component> adapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, components);
-//        listView.setAdapter(adapter);
+        componentDatabase = Room.databaseBuilder(this, ComponentDatabase.class, "ComponentsDB").build();
 
-        adapter = new ComponentAdapter(components, getApplicationContext(), R.layout.row_item);
-        listView.setAdapter(adapter);
+        Executor executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
 
-//        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                Toast.makeText(ComponentsList.this, components.get(position).toString(), Toast.LENGTH_LONG).show();
-//            }
-//        });
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    components = componentDatabase.getDaoObject().getComponents();
+                } finally {
+                    handler.post(() -> {
+                        adapter = new ComponentAdapter(components, getApplicationContext(), R.layout.row_item);
+                        listView.setAdapter(adapter);
+                    });
+                }
+            }
+        });
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -79,7 +85,7 @@ public class ComponentsList extends AppCompatActivity {
         if (resultCode==RESULT_OK){
             if (requestCode==403)
             {
-                components.set(modifiedId,data.getParcelableExtra("apartament"));
+                components.set(modifiedId,data.getParcelableExtra("component"));
                 adapter.notifyDataSetChanged();
             }
         }
