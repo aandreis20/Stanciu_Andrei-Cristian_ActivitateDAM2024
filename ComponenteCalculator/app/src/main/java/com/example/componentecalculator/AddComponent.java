@@ -13,8 +13,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.room.Room;
+
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public class AddComponent extends AppCompatActivity {
+    private ComponentDatabase database = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,6 +30,8 @@ public class AddComponent extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        database = Room.databaseBuilder(this, ComponentDatabase.class, "ComponentsDB").build();
 
         Intent intent = getIntent();
         if(intent.hasExtra("component")) {
@@ -59,6 +66,14 @@ public class AddComponent extends AppCompatActivity {
                 int quantity = Integer.parseInt(etQuantity.getText().toString());
 
                 Component component = new Component(name, category, price, discount, quantity);
+
+                Executor executor = Executors.newSingleThreadExecutor();
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        database.getDaoObject().insertComponent(component);
+                    }
+                });
 
                 Intent it = new Intent();
                 it.putExtra("component", component);

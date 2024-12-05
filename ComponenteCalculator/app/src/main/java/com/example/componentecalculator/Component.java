@@ -3,7 +3,13 @@ package com.example.componentecalculator;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+@Entity(tableName = "Components")
 public class Component implements Parcelable {
+    @PrimaryKey(autoGenerate = true)
+    private int id;
     private String name;
     private String category;
     private int price;
@@ -114,5 +120,13 @@ public class Component implements Parcelable {
                 ", availability=" + discount +
                 ", quantity=" + quantity +
                 '}';
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }

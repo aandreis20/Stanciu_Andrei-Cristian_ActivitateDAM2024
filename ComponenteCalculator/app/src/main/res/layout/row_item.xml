@@ -41,6 +41,14 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/componentQuantity"
                 android:textSize="16sp"/>
+            <Button
+                android:id="@+id/componentDelete"
+                android:layout_width="200dp"
+                android:layout_height="50dp"
+                android:gravity="center_horizontal"
+                android:layout_gravity="center_horizontal"
+                android:layout_margin="20dp"
+                android:text="Delete" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>
