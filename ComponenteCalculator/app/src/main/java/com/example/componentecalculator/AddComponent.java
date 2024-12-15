@@ -2,6 +2,7 @@ package com.example.componentecalculator;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -15,6 +16,9 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.room.Room;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -61,7 +65,7 @@ public class AddComponent extends AppCompatActivity {
                 EditText etPrice = findViewById(R.id.EditPrice);
                 int price = Integer.parseInt(etPrice.getText().toString());
                 CheckBox cbDiscount = findViewById(R.id.CheckDiscount);
-                boolean discount = ((CheckBox)findViewById(R.id.CheckDiscount)).isChecked();
+                boolean discount = (cbDiscount.isChecked());
                 EditText etQuantity = findViewById(R.id.EditQuantity);
                 int quantity = Integer.parseInt(etQuantity.getText().toString());
 
@@ -75,8 +79,19 @@ public class AddComponent extends AppCompatActivity {
                     }
                 });
 
+                try {
+                    File file = new File(getFilesDir(), "components.txt");
+                    FileOutputStream fileOutputStream = new FileOutputStream(file, true);
+                    ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+                    objectOutputStream.writeObject(component);
+                    objectOutputStream.close();
+                    fileOutputStream.close();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+
                 Intent it = new Intent();
-                it.putExtra("component", component);
+                it.putExtra("component", (Parcelable) component);
                 Toast.makeText(AddComponent.this, component.toString(), Toast.LENGTH_LONG).show();
                 setResult(RESULT_OK, it);
                 finish();

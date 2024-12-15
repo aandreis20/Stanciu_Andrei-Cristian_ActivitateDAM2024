@@ -1,29 +1,31 @@
 package com.example.componentecalculator;
 
-import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.View;
-import android.widget.AdapterView;
+import android.util.Log;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.room.Room;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class ComponentsList extends AppCompatActivity {
     private List<Component> components = null;
-    private int modifiedId = 0;
     private ComponentAdapter adapter = null;
     private ComponentDatabase componentDatabase = null;
 
@@ -38,56 +40,46 @@ public class ComponentsList extends AppCompatActivity {
             return insets;
         });
         ListView listView = findViewById(R.id.componentsListView);
-
         componentDatabase = Room.databaseBuilder(this, ComponentDatabase.class, "ComponentsDB").build();
-
         Executor executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
 
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    components = componentDatabase.getDaoObject().getComponents();
-                } finally {
-                    handler.post(() -> {
-                        adapter = new ComponentAdapter(components, getApplicationContext(), R.layout.row_item);
-                        listView.setAdapter(adapter);
-                    });
-                }
+        executor.execute(() -> {
+            try {
+                components = componentDatabase.getDaoObject().getComponents();
+            } finally {
+                handler.post(() -> {
+                    adapter = new ComponentAdapter(components, this, R.layout.row_item);
+                    listView.setAdapter(adapter);
+                });
             }
         });
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent modifyIntent = new Intent(getApplicationContext(), AddComponent.class);
-                modifyIntent.putExtra("component", components.get(position));
-                modifiedId = position;
-                startActivityForResult(modifyIntent, 403);
-                Toast.makeText(ComponentsList.this, components.get(position).toString(), Toast.LENGTH_LONG).show();
-            }
-        });
-
-        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                components.remove(position);
-                adapter.notifyDataSetChanged();
-                return false;
-            }
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            Log.d("ComponentsList", "Item clicked: " + position);
+            Toast.makeText(this, "Componenta a fost adăugată la favorite!", Toast.LENGTH_SHORT).show();
         });
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode==RESULT_OK){
-            if (requestCode==403)
-            {
-                components.set(modifiedId,data.getParcelableExtra("component"));
-                adapter.notifyDataSetChanged();
-            }
+    private void saveToFavorites(Component component) {
+        SharedPreferences sharedPreferences = getSharedPreferences("Favorites", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        Gson gson = new Gson();
+        String json = sharedPreferences.getString("Favorites_list", null);
+        Type type = new TypeToken<ArrayList<Component>>() {}.getType();
+        ArrayList<Component> favoritesList = gson.fromJson(json, type);
+
+        if (favoritesList == null) {
+            favoritesList = new ArrayList<>();
         }
+
+        favoritesList.add(component);
+
+        String updatedJson = gson.toJson(favoritesList);
+        editor.putString("Favorites_list", updatedJson);
+        editor.apply();
+
+        Toast.makeText(this, "favorite component", Toast.LENGTH_SHORT).show();
     }
 }

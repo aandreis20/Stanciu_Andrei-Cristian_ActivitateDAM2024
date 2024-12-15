@@ -10,17 +10,15 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.TextView;
-
 import androidx.room.Room;
-
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class ComponentAdapter extends BaseAdapter {
     private List<Component> componentList = null;
-    private Context ctx;
-    private int resourceLayout;
+    private final Context ctx;
+    private final int resourceLayout;
     private ComponentDatabase componentDatabase = null;
 
     public ComponentAdapter(List<Component> componentList, Context ctx, int resourceLayout) {
@@ -41,51 +39,56 @@ public class ComponentAdapter extends BaseAdapter {
 
     @Override
     public long getItemId(int position) {
-        return 0;
+        return position;
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         componentDatabase = Room.databaseBuilder(ctx, ComponentDatabase.class, "ComponentsDB").build();
 
-        LayoutInflater inflater = LayoutInflater.from(ctx);
-        View view = inflater.inflate(resourceLayout, parent, false);
-        TextView componentName = view.findViewById(R.id.componentName);
-        TextView componentCategory = view.findViewById(R.id.componentCategory);
-        TextView componentPrice = view.findViewById(R.id.componentPrice);
-        CheckBox componentDiscount = view.findViewById(R.id.componentDiscount);
-        TextView componentQuantity = view.findViewById(R.id.componentQuantity);
-        Button deleteButton = view.findViewById(R.id.componentDelete);
+        ViewHolder holder;
+        if (convertView == null) {
+            LayoutInflater inflater = LayoutInflater.from(ctx);
+            convertView = inflater.inflate(resourceLayout, parent, false);
+            holder = new ViewHolder();
+            holder.componentName = convertView.findViewById(R.id.componentName);
+            holder.componentCategory = convertView.findViewById(R.id.componentCategory);
+            holder.componentPrice = convertView.findViewById(R.id.componentPrice);
+            holder.componentDiscount = convertView.findViewById(R.id.componentDiscount);
+            holder.componentQuantity = convertView.findViewById(R.id.componentQuantity);
+            holder.deleteButton = convertView.findViewById(R.id.componentDelete);
+            convertView.setTag(holder);
+        } else {
+            holder = (ViewHolder) convertView.getTag();
+        }
 
         Component component = (Component)getItem(position);
-        Executor executor = Executors.newSingleThreadExecutor();
-        Handler handler = new Handler(Looper.getMainLooper());
 
-        componentName.setText(component.getName());
-        componentCategory.setText(component.getCategory());
-        componentPrice.setText(String.valueOf(component.getPrice()));
-        componentDiscount.setChecked(component.isDiscount());
-        componentQuantity.setText(String.valueOf(component.getQuantity()));
-        deleteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            componentDatabase.getDaoObject().deleteComponent(component);
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        } finally {
-                            handler.post(() -> {
-                                componentList.remove(component);
-                                notifyDataSetChanged();
-                            });
-                        }
-                    }
+        holder.componentName.setText(component.getName());
+        holder.componentCategory.setText(component.getCategory());
+        holder.componentPrice.setText(String.valueOf(component.getPrice()));
+        holder.componentDiscount.setChecked(component.isDiscount());
+        holder.componentQuantity.setText(String.valueOf(component.getQuantity()));
+        holder.deleteButton.setOnClickListener(v -> {
+            Executor executor = Executors.newSingleThreadExecutor();
+            Handler handler = new Handler(Looper.getMainLooper());
+            executor.execute(() -> {
+                componentDatabase.getDaoObject().deleteComponent(component);
+                handler.post(() -> {
+                    componentList.remove(component);
+                    notifyDataSetChanged();
                 });
-            }
+            });
         });
-        return view;
+
+        return convertView;
+    }
+    static class ViewHolder {
+        TextView componentName;
+        TextView componentCategory;
+        TextView componentPrice;
+        CheckBox componentDiscount;
+        TextView componentQuantity;
+        Button deleteButton;
     }
 }

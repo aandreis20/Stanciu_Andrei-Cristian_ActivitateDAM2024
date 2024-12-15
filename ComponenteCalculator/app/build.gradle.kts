@@ -35,6 +35,7 @@ dependencies {
 
     annotationProcessor("androidx.room:room-compiler:2.6.1")
     implementation("androidx.room:room-runtime:2.6.1")
+    implementation("com.google.code.gson:gson:2.8.9")
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)

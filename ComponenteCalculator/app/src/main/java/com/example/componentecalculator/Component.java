@@ -6,8 +6,10 @@ import android.os.Parcelable;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import java.io.Serializable;
+
 @Entity(tableName = "Components")
-public class Component implements Parcelable {
+public class Component implements Parcelable, Serializable {
     @PrimaryKey(autoGenerate = true)
     private int id;
     private String name;

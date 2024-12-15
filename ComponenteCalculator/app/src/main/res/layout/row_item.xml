@@ -3,14 +3,6 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -34,6 +26,8 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/componentDiscount"
                 android:clickable="false"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
                 android:enabled="false"
                 android:textSize="16sp"/>
             <TextView
@@ -48,7 +42,8 @@
                 android:gravity="center_horizontal"
                 android:layout_gravity="center_horizontal"
                 android:layout_margin="20dp"
+                android:focusable="true"
+                android:focusableInTouchMode="false"
+                android:clickable="true"
                 android:text="Delete" />
-        </LinearLayout>
-    </ScrollView>
 </LinearLayout>
