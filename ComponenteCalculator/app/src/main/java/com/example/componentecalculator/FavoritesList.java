@@ -16,14 +16,9 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class FavoritesList extends AppCompatActivity {
-    private List<Component> favorites = new ArrayList<>();
-    private ComponentAdapter adapter = null;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,10 +31,8 @@ public class FavoritesList extends AppCompatActivity {
         });
 
         ListView listView = findViewById(R.id.favoritesListView);
-
-        // Citim componentele favorite din SharedPreferences
-        SharedPreferences sharedPreferences = getSharedPreferences("Favorites", MODE_PRIVATE);
-        String json = sharedPreferences.getString("Favorites_list", null);
+        SharedPreferences sharedPreferences = getSharedPreferences("FavoritesList", MODE_PRIVATE);
+        String json = sharedPreferences.getString("FavoritesList", null);
 
         if (json != null) {
             Gson gson = new Gson();

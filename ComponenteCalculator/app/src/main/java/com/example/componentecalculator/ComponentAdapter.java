@@ -1,6 +1,7 @@
 package com.example.componentecalculator;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.LayoutInflater;
@@ -10,7 +11,15 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.room.Room;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -81,8 +90,39 @@ public class ComponentAdapter extends BaseAdapter {
             });
         });
 
+        convertView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                saveToFavorites(component);
+                return false;
+            }
+        });
+
         return convertView;
     }
+
+    private void saveToFavorites(Component component) {
+        SharedPreferences sharedPreferences = ctx.getSharedPreferences("FavoritesList", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        Gson gson = new Gson();
+        String json = sharedPreferences.getString("FavoritesList", null);
+        Type type = new TypeToken<ArrayList<Component>>() {}.getType();
+        ArrayList<Component> favoritesList = gson.fromJson(json, type);
+
+        if (favoritesList == null) {
+            favoritesList = new ArrayList<>();
+        }
+
+        favoritesList.add(component);
+
+        String updatedJson = gson.toJson(favoritesList);
+        editor.putString("FavoritesList", updatedJson);
+        editor.apply();
+
+        Toast.makeText(ctx, "favorite component", Toast.LENGTH_SHORT).show();
+    }
+
     static class ViewHolder {
         TextView componentName;
         TextView componentCategory;
