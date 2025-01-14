@@ -42,6 +42,9 @@
         <activity
             android:name=".AddComponent"
             android:exported="false" />
+        <activity
+            android:name=".FirebaseListActivity"
+            android:exported="true" />
     </application>
 
 </manifest>
