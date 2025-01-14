@@ -1,5 +1,10 @@
 package com.example.componentecalculator;
 
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -24,6 +29,7 @@ import java.util.concurrent.Executors;
 
 public class AddComponent extends AppCompatActivity {
     private ComponentDatabase database = null;
+    private DatabaseReference databaseReference;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,8 +41,9 @@ public class AddComponent extends AppCompatActivity {
             return insets;
         });
 
+        FirebaseApp.initializeApp(this);
         database = Room.databaseBuilder(this, ComponentDatabase.class, "ComponentsDB").build();
-
+        databaseReference = FirebaseDatabase.getInstance().getReference("components");
         Intent intent = getIntent();
         if(intent.hasExtra("component")) {
             Component component = intent.getParcelableExtra("component");
@@ -90,9 +97,24 @@ public class AddComponent extends AppCompatActivity {
                     throw new RuntimeException(e);
                 }
 
+                CheckBox cbOnline = findViewById(R.id.CheckOnline);
+                if (cbOnline.isChecked()) {
+                    databaseReference.push().setValue(component)
+                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(Task<Void> task) {
+                                if (task.isSuccessful()) {
+                                    Toast.makeText(AddComponent.this, "Componenta salvată cu succes în Firebase", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    Toast.makeText(AddComponent.this, "Eroare la salvarea în Firebase: " + task.getException().getMessage(),
+                                        Toast.LENGTH_LONG).show();
+                                }
+                            }
+                        });
+                }
+
                 Intent it = new Intent();
                 it.putExtra("component", (Parcelable) component);
-                Toast.makeText(AddComponent.this, component.toString(), Toast.LENGTH_LONG).show();
                 setResult(RESULT_OK, it);
                 finish();
             }
